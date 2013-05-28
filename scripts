@@ -1,0 +1,349 @@
+
+USE master
+GO
+CREATE DATABASE ComAim
+ON PRIMARY
+( NAME = 'ComAim', FILENAME = 'C:\Program Files\Microsoft SQL Server\MSSQL.1\MSSQL\Data\ComAim.mdf' , SIZE = 3MB ,
+MAXSIZE = UNLIMITED, FILEGROWTH = 1MB )
+LOG ON
+( NAME = 'ComAim_log', FILENAME = 'C:\Program Files\Microsoft SQL Server\MSSQL.1\MSSQL\Data\ComAim_log.ldf' , SIZE = 1MB ,
+MAXSIZE = UNLIMITED , FILEGROWTH = 10% );
+
+
+
+                                   /******  Script Date: 05/04/2013  ******/
+
+USE ComAim
+GO
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+---------------------------------- Business_Incubator --------------------------------
+
+CREATE TABLE Business_Incubator
+(
+  number_of_places   int                NOT NULL ,
+	[address]          nvarchar(35)       NOT NULL ,
+	website            nvarchar(15)       NOT NULL ,
+	incubator_id       int IDENTITY(1,1)  NOT NULL ,
+
+ CONSTRAINT PK_Business_Incubator PRIMARY KEY CLUSTERED 
+(
+	incubator_id ASC
+)
+ WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON PRIMARY
+) ON PRIMARY
+
+
+---------------------------------- STARTUP --------------------------------
+
+CREATE TABLE Startup
+(
+	[name]               nvarchar(15)       NOT NULL ,
+	[description]        nvarchar(300)      NOT NULL ,
+	business_model       nvarchar(100)      NOT NULL ,
+	competitors          nvarchar(50)       NOT NULL ,
+	marketing_strategy   nvarchar(200)      NOT NULL ,
+	sum_investments      int                NOT NULL ,
+	website              nvarchar(15)       NOT NULL ,
+	foundation_day       smalldatetime      NOT NULL ,
+	twitter_address      nvarchar(15)       NULL     ,
+	leader               nvarchar(15)       NOT NULL ,
+    stage                nvarchar(20)       NOT NULL ,
+	incubator_id         int                NULL     ,
+	startup_i            int IDENTITY(1,1)  NOT NULL ,
+
+ CONSTRAINT PK_Startup_1 PRIMARY KEY CLUSTERED 
+(
+	startup_id ASC
+)
+ WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON PRIMARY
+) ON PRIMARY
+
+GO
+ALTER TABLE Startup  WITH CHECK ADD  CONSTRAINT FK_Startup_Business_Incubator FOREIGN KEY(incubator_id)
+REFERENCES Business_Incubator (incubator_id)
+GO
+ALTER TABLE Startup CHECK CONSTRAINT FK_Startup_Business_Incubator
+
+
+---------------------------------- Business_Angel --------------------------------
+ 
+CREATE TABLE Business_Angel
+(
+	[name]    nvarchar(15)                 NOT NULL ,
+	surname   nvarchar(15)                 NOT NULL ,
+	angel_id  int           IDENTITY(1,1)  NOT NULL ,
+
+ CONSTRAINT PK_Business_Angel_1 PRIMARY KEY CLUSTERED 
+(
+	angel_id ASC
+) 
+  WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON PRIMARY
+) ON PRIMARY
+
+
+---------------------------------- Investment_Company --------------------------------
+
+CREATE TABLE Investment_Company
+(
+	[name]                nvarchar(15)       NOT NULL ,
+	[description]         nvarchar(300)      NOT NULL ,
+	website               nvarchar(25)       NOT NULL ,
+	foundation_day        smalldatetime      NOT NULL ,
+	main_office_address   nvarchar(20)       NULL     ,
+	company_leader        nvarchar(15)       NOT NULL ,
+	investCompany_id      int IDENTITY(1,1)  NOT NULL ,
+
+ CONSTRAINT PK_Investment_Company PRIMARY KEY CLUSTERED 
+(
+	investCompany_id ASC
+)
+ WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON PRIMARY
+) ON PRIMARY
+
+
+---------------------------------- Investment_Manager --------------------------------
+
+CREATE TABLE Investment_Manager
+(
+	[name]                  nvarchar(15)        NOT NULL ,
+	surname                 nvarchar(15)        NOT NULL ,
+	identification_number   nvarchar(15)        NOT NULL ,
+	investCompany_id        int                 NULL     ,
+	investManager_id        int IDENTITY(1,1)   NOT NULL ,
+
+ CONSTRAINT PK_Investment_Manager_1 PRIMARY KEY CLUSTERED 
+(
+	investManager_id ASC
+)
+ WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON PRIMARY
+) ON PRIMARY
+
+GO
+ALTER TABLE Investment_Manager  WITH CHECK ADD  CONSTRAINT FK_Investment_Manager_Investment_Company FOREIGN KEY(investCompany_id)
+REFERENCES Investment_Company (investCompany_id)
+GO
+ALTER TABLE Investment_Manager CHECK CONSTRAINT FK_Investment_Manager_Investment_Company
+
+
+---------------------------------- Sartup_Manager --------------------------------
+
+CREATE TABLE Sartup_Manager
+(
+	investManager_id   int   NOT NULL ,
+	startup_id         int   NOT NULL ,
+
+ CONSTRAINT PK_Sartup_Manager PRIMARY KEY CLUSTERED 
+(
+	investManager_id   ASC ,
+	startup_id         ASC
+)
+ WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON PRIMARY
+) ON PRIMARY
+
+GO
+ALTER TABLE Sartup_Manager  WITH CHECK ADD  CONSTRAINT FK_Sartup_Manager_Investment_Manager FOREIGN KEY(investManager_id)
+REFERENCES Investment_Manager (investManager_id)
+GO
+ALTER TABLE Sartup_Manager CHECK CONSTRAINT FK_Sartup_Manager_Investment_Manager
+GO
+ALTER TABLE Sartup_Manager  WITH CHECK ADD  CONSTRAINT FK_Sartup_Manager_Startup FOREIGN KEY(startup_id)
+REFERENCES Startup (startup_id)
+GO
+ALTER TABLE Sartup_Manager CHECK CONSTRAINT FK_Sartup_Manager_Startup
+
+
+---------------------------------- Sartup_Angel --------------------------------
+
+CREATE TABLE Sartup_Angel
+(
+	startup_id   int   NOT NULL ,
+	angel_id     int   NOT NULL ,
+
+ CONSTRAINT PK_Sartup_Angel PRIMARY KEY CLUSTERED 
+(
+	startup_id   ASC ,
+	angel_id     ASC
+)
+ WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON PRIMARY
+) ON PRIMARY
+
+GO
+ALTER TABLE Sartup_Angel  WITH CHECK ADD  CONSTRAINT FK_Sartup_Angel_Business_Angel FOREIGN KEY(angel_id)
+REFERENCES Business_Angel (angel_id)
+GO
+ALTER TABLE Sartup_Angel CHECK CONSTRAINT FK_Sartup_Angel_Business_Angel
+GO
+ALTER TABLE Sartup_Angel  WITH CHECK ADD  CONSTRAINT FK_Sartup_Angel_Startup FOREIGN KEY(startup_id)
+REFERENCES Startup (startup_id)
+GO
+ALTER TABLE Sartup_Angel CHECK CONSTRAINT FK_Sartup_Angel_Startup
+
+
+
+---------------------------------- Funding_Round --------------------------------
+
+CREATE TABLE Funding_Round
+(
+	[name]             nvarchar(3)   NOT NULL ,
+	sum_investments    int           NOT NULL ,
+	investCompany_id   int           NULL     ,
+	angel_id           int           NULL     ,
+	startup_id         int           NULL     ,
+	round_id           int           NOT NULL ,
+
+ CONSTRAINT PK_Funding_Round PRIMARY KEY CLUSTERED 
+(
+	round_id ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON PRIMARY
+) ON PRIMARY
+
+GO
+ALTER TABLE Funding_Round  WITH CHECK ADD  CONSTRAINT FK_Funding_Round - Business_Angel FOREIGN KEY(angel_id)
+REFERENCES Business_Angel (angel_id)
+GO
+ALTER TABLE Funding_Round CHECK CONSTRAINT FK_Funding_Round - Business_Angel
+GO
+ALTER TABLE Funding_Round  WITH CHECK ADD  CONSTRAINT FK_Funding_Round_Investment_Company FOREIGN KEY(investCompany_id)
+REFERENCES Investment_Company (investCompany_id)
+GO
+ALTER TABLE Funding_Round CHECK CONSTRAINT FK_Funding_Round_Investment_Company
+GO
+ALTER TABLE Funding_Round  WITH CHECK ADD  CONSTRAINT FK_Funding_Round_Startup FOREIGN KEY(startup_id)
+REFERENCES Startup (startup_id)
+GO
+ALTER TABLE Funding_Round CHECK CONSTRAINT FK_Funding_Round_Startup
+
+---------------------------------- Application --------------------------------
+
+CREATE TABLE [Application]
+(
+	round_id           int                NULL ,
+	[state]            nvarchar(15)       NULL ,
+	angel_id           int                NULL ,
+	investManager_id   int                NULL ,
+	startup_id         int                NULL ,
+	application_type   nchar(20)          NULL ,
+	application_id     int IDENTITY(1,1)  NOT NULL ,
+
+ CONSTRAINT PK_Application PRIMARY KEY CLUSTERED 
+(
+	application_id ASC
+)
+ WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON PRIMARY,
+ 
+CONSTRAINT IX_Application UNIQUE NONCLUSTERED 
+(
+	round_id ASC
+)
+ WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON PRIMARY
+) ON PRIMARY
+
+GO
+ALTER TABLE [Application]  WITH CHECK ADD  CONSTRAINT FK_Application_Business_Angel FOREIGN KEY(startup_id)
+REFERENCES Business_Angel (angel_id)
+GO
+ALTER TABLE [Application] CHECK CONSTRAINT FK_Application_Business_Angel
+GO
+ALTER TABLE [Application]  WITH CHECK ADD  CONSTRAINT FK_Application_Funding_Round FOREIGN KEY(round_id)
+REFERENCES Funding_Round (round_id)
+GO
+ALTER TABLE [Application] CHECK CONSTRAINT FK_Application_Funding_Round
+GO
+ALTER TABLE [Application]  WITH CHECK ADD  CONSTRAINT FK_Application_Investment_Manager FOREIGN KEY(angel_id)
+REFERENCES Investment_Manager (investManager_id)
+GO
+ALTER TABLE [Application] CHECK CONSTRAINT FK_Application_Investment_Manager
+GO
+ALTER TABLE [Application]  WITH CHECK ADD  CONSTRAINT FK_Application_Startup FOREIGN KEY(investManager_id)
+REFERENCES Startup (startup_id)
+GO
+ALTER TABLE [Application] CHECK CONSTRAINT FK_Application_Startup
+
+
+------------------------------INSERT INTO--------------------------------
+
+
+USE [ComAim]
+GO
+
+-----------Startup------------
+
+INSERT INTO Startup([name], [description], business_model, competitors, marketing_strategy, sum_investments, website, foundation_day, twitter_address, leader, stage, incubator_id)
+VALUES('БанкоМап', 'Стартап вирішує проблему пошуку банкоматів пунктів обслуговування фінансових установ в містах Україні.', 'Надання доступу до актуальної інформації про фінансові послуги на мапі України.', 'Мобільні додатки та сайти від деяких банків.', 'Проект вебмайстрам спеціальний віджет для показу банкоматів у себе на сайті, можна настроїти показ конкретного міста або банкоматів тільки певного банку.', 200000, 'www.bankomap.com.ua', '03.01.2011' , NULL, 'Андрій Богдан', 'Посівна стадія', NULL)
+
+INSERT INTO Startup([name], [description], business_model, competitors, marketing_strategy, sum_investments, website, foundation_day, twitter_address, leader, stage, incubator_id)
+VALUES('WithMyFriends', 'Стартап вирішує проблему пошуку знайомих та просто цікавих людей, котрі їдуть в тому ж поїзді.', 'Проект збирається заробляти на генерації лідів для продажу квитків, бронювання готелів та замовленню таксі.', 'TripIt, Foursquare', 'Проект збирається рекламуватись за допомогою зовнішньої реклами в поїздах та соціальних механік в соц мережах.', 400000, 'www.withmyfriends.com.ua', '01.15.2011' , NULL, 'Володимир Шутяк', 'Стадія запуску', NULL)
+
+INSERT INTO Startup([name], [description], business_model, competitors, marketing_strategy, sum_investments, website, foundation_day, twitter_address, leader, stage, incubator_id)
+VALUES('InfoBus', 'Метою проекту є відслідковування руху маршруток у Львові.', 'Стартап планує заробляти на рекламі або її відсутності в програмі. З іншої сторони Стартап позиціонує себе більше як соціально спрямований проект.', 'EasyWay', 'Рекламу та просування проекту його засновники планують проводити виключно через соціальні мережі.', 540000, 'www.infobus.com.ua', '05.02.2012', NULL, 'Мельничук Лесь', 'Посівна стадія', NULL)
+
+INSERT INTO Startup([name], [description], business_model, competitors, marketing_strategy, sum_investments, website, foundation_day, twitter_address, leader, stage, incubator_id)
+VALUES('Ticklux', 'Ticklux – система продажу квитків онлайн в Україні.', 'Засновники планують заробляти на відсотку з продажів квитків для платних подій.', 'ticketforevent.com, eventbrite.com.', 'Дзвінки та електронні листи організаторам подій, Контекстна реклама для користувачів, Розміщення інформації в соц. мережах', 300000, 'ticklux.com', '07.11.2011' , NULL, 'Тарас Суховенко', 'Посівна стадія', NULL)
+
+INSERT INTO Startup([name], [description], business_model, competitors, marketing_strategy, sum_investments, website, foundation_day, twitter_address, leader, stage, incubator_id)
+VALUES('Evertuner', 'Evertuner – це онлайн-сервіс для систематизації ціленаправленої комунікації та є зручним інструментом для підтримання контакту між консультантом (репетитором, вчителем, психологом) та його клієнтом.', 'Продаж SaaS-рішення веб-платформи, Корпоративні замовлення для тренінг-центрів', 'Ресурси coachingcloud.com та coachingself.com.', 'Стартап планує поширювати інформацію про себе наступними способами: Створення тематичного блогу на тему “системні комунікації”, Реклама на сайтах потенційних користувачів, Промо-коди, МЛМ, Прямі продажі.', 340000, 'www.evertuner.com', '08.13.2012', NULL, 'Данило Бурикін', 'Посівна стадія', NULL)
+
+
+----------- Business_Incubator ------------
+
+INSERT INTO Business_Incubator(number_of_places, [address], website)
+VALUES(60, 'Україна, Київ, вул.Стрітенська 10', 'www.ihub.com.ua')
+
+INSERT INTO Business_Incubator(number_of_places, [address], website)
+VALUES(50, 'Україна, Київ, вул.Жилянська 75', 'www.eastlabs.co')
+
+
+----------- Investment_Company ------------
+
+INSERT INTO Investment_Company([name], [description], website, foundation_day, main_office_address,company_leader )
+VALUES('Fidelity', 'Американська компанія, одна з найбільших в світі на ринку фінансових послуг.По всьому світу в компанії працює понад 49 тис. співробітників, 900 з яких є інвестиційними експератами.', 'www.fidelity.com', '02.09.1946', 'Бостон', 'Вілл Данофф' )
+
+INSERT INTO Investment_Company([name], [description], website, foundation_day, main_office_address,company_leader )
+VALUES('State Street', 'Американська фінансова компанія.Штаб-квартира знаходиться у фінансовому районі Бостона на вулиці One Lincoln', 'www.statestreet.com', '07.04.1992', 'Бостон, вул. One Lincoln', 'Джей Холей' )
+
+
+----------- Investment_Manager ------------
+
+INSERT INTO Investment_Manager([name], surname, identification_number, investCompany_id)
+VALUES('Пітер', 'Лінч', '487265013', NULL )
+
+INSERT INTO Investment_Manager([name], surname, identification_number, investCompany_id)
+VALUES('Нед', 'Джонсон', '368764356', NULL )
+
+INSERT INTO Investment_Manager([name], surname, identification_number, investCompany_id)
+VALUES('Джеффрі', 'Файнгольд', '954753257', NULL )
+
+INSERT INTO Investment_Manager([name], surname, identification_number, investCompany_id)
+VALUES('Кейт', 'Бармен', '918654184', NULL )
+
+INSERT INTO Investment_Manager([name], surname, identification_number, investCompany_id)
+VALUES('Джесіка', 'Донохю', '501918765', NULL )
+
+INSERT INTO Investment_Manager([name], surname, identification_number, investCompany_id)
+VALUES('Джозеф', 'Грей', '816557388', NULL )
+
+
+----------- Business_Angel ------------
+
+INSERT INTO Business_Angel([name], surname)
+VALUES('Дмитро', 'Лисицький')
+
+INSERT INTO Business_Angel([name], surname)
+VALUES('Ярослав', 'Максимович')
+
+INSERT INTO Business_Angel([name], surname)
+VALUES('Святослав', 'Погрібний')
+
+INSERT INTO Business_Angel([name], surname)
+VALUES('Андрій', 'Хорсев')
+
+INSERT INTO Business_Angel([name], surname)
+VALUES('Юрій', 'Чайка')
+
+INSERT INTO Business_Angel([name], surname)
+VALUES('Ігор', 'Дільний')
