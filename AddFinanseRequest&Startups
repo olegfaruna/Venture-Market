@@ -1,0 +1,205 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Windows.Forms;
+using System.Data.SqlClient;
+
+namespace ComAim___Venture_Market
+{
+    public partial class Form1 : Form
+    {
+        static string cn = (@"Data Source = OLEH-PC;" + "Initial Catalog = ComAim;" +
+                                   "Persist Security Info = True; User ID = sa; Password = farik181818");
+        SqlConnection con = new SqlConnection(cn);
+        SqlDataAdapter da;
+        DataTable dt = new DataTable();
+        SqlCommand cmd;
+        public static string nam;
+        public static string nam1;
+        public static int ID;
+
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        private void cbStartupName_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            dataGridView1.Show();
+            btCreate.Show();
+            dt.Clear();
+            con.Open();
+            string strQuery = "SELECT [name], [description], business_model, competitors, marketing_strategy, sum_investments, website," +
+                                      "foundation_day, leader, stage," +
+                                      "(SELECT [name] FROM Business_Incubator BI WHERE BI.incubator_id = ST.incubator_id ) AS business_incubator," +
+                                      "(SELECT DISTINCT [name] FROM Investment_Manager IM, Startup_Manager SM WHERE IM.investManager_id = SM.investManager_id AND SM.startup_id = ST.startup_id) AS invest_manager," +
+                                      "(SELECT DISTINCT [name] FROM Business_Angel BA, Startup_Angel SA WHERE BA.angel_id = SA.angel_id AND SA.startup_id = ST.startup_id ) AS business_angel " +
+                              "FROM Startup ST " +
+                              "WHERE name = '" + cbStartupName.Text + "';";
+            cmd = new SqlCommand(strQuery, con);
+            da = new SqlDataAdapter(strQuery, con);
+            da.Fill(dt);
+            dataGridView1.DataSource = dt;
+            con.Close();
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            // TODO: данная строка кода позволяет загрузить данные в таблицу "comAimDataSet.Business_Incubator". При необходимости она может быть перемещена или удалена.
+            this.business_IncubatorTableAdapter.Fill(this.comAimDataSet.Business_Incubator);
+            // TODO: данная строка кода позволяет загрузить данные в таблицу "comAimDataSet.Startup". При необходимости она может быть перемещена или удалена.
+            this.startupTableAdapter.Fill(this.comAimDataSet.Startup);
+            dataGridView1.Hide();
+            dataGridView2.Hide();
+            cbStartupName.Hide();
+            label1.Hide();
+            label2.Hide();
+            btCreate.Hide();
+            tabControl1.Hide();
+            cbIncubator.Hide();
+            dataGridView1.Hide();
+            
+        }
+
+        private void btCreate_Click(object sender, EventArgs e)
+        {
+            if (cbStartupName.Text != "")
+            {
+
+                SqlCommand GetCommand = new SqlCommand("SELECT DISTINCT ST.name FROM Startup ST, Business_Incubator BI WHERE ST.incubator_id = BI.incubator_id AND ST.name = '" + cbStartupName.Text + "';", con);
+                con.Open();
+                SqlDataReader Namereader = GetCommand.ExecuteReader();
+                while (Namereader.Read())
+                {
+                    nam = Namereader.GetString(0);
+                }
+                con.Close();
+                string name = nam;
+                Namereader.Close();
+                
+                SqlCommand GetCom = new SqlCommand("SELECT DISTINCT ST.name FROM Startup ST, Business_Incubator BI WHERE ST.incubator_id IS NULL AND ST.name = '" + cbStartupName.Text + "';", con);
+                con.Open();
+                SqlDataReader Nameread = GetCom.ExecuteReader();
+                while (Nameread.Read())
+                {
+                    nam1 = Nameread.GetString(0);
+                }
+                con.Close();
+                string name1 = nam1;
+                Namereader.Close();
+                
+                SqlCommand GetIDCommand = new SqlCommand("SELECT ST.startup_id FROM Startup ST WHERE ST.name = '" + cbStartupName.Text + "';", con);
+                con.Open();
+                SqlDataReader IDreader = GetIDCommand.ExecuteReader();
+
+                while (IDreader.Read())
+                {
+                    ID = IDreader.GetInt32(0);
+                }
+                int strID = ID;
+                con.Close();
+                IDreader.Close();
+                
+                    if(cbStartupName.Text == name )
+                    {
+                        try
+                        {
+                            con.Open();
+                            string Query1 = "INSERT INTO [dbo].[Application](startup_id, application_type) VALUES(" + strID + ",'InvestCompany')";
+                            cmd = new SqlCommand(Query1, con);
+                            cmd.ExecuteNonQuery();
+                            cmd.Dispose();
+                            con.Close();
+                            MessageBox.Show("Заявка подана!");
+                            con.Close();
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show(ex.Message);
+                        }
+                    }
+
+                    if (cbStartupName.Text == name1)
+                    {
+                        try
+                        {
+                            string Query2 = "INSERT INTO [dbo].[Application](startup_id, application_type) VALUES(" + strID + ",'BisnessAngel')";
+                            cmd = new SqlCommand(Query2, con);
+                            con.Open();
+                            cmd.ExecuteNonQuery();
+                            cmd.Dispose();
+                            con.Close();
+                            MessageBox.Show("Заявка подана!");
+                            con.Close();
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show(ex.Message);
+                        }
+                    }
+
+            }
+            else
+                MessageBox.Show("Не правильний ввід!");
+            con.Close();
+        }
+
+        private void addFinanceRequestToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            
+            cbStartupName.Show();
+            label1.Show();
+        }
+
+        private void investorsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Investors inv = new Investors();
+            inv.Show();
+        }
+
+
+        private void cbIncubator_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            dataGridView2.Show();
+            dt.Clear();
+            con.Open();
+            string strQuery = "SELECT DISTINCT ST.name, ST.description, ST.business_model, ST.competitors, ST.marketing_strategy, ST.sum_investments, ST.website," +
+                                      "ST.foundation_day, ST.leader, ST.stage," +
+                                      "(SELECT [name] FROM Business_Incubator BI WHERE BI.incubator_id = ST.incubator_id ) AS business_incubator," +
+                                      "(SELECT DISTINCT [name] FROM Investment_Manager IM, Startup_Manager SM WHERE IM.investManager_id = SM.investManager_id AND SM.startup_id = ST.startup_id) AS invest_manager," +
+                                      "(SELECT DISTINCT [name] FROM Business_Angel BA, Startup_Angel SA WHERE BA.angel_id = SA.angel_id AND SA.startup_id = ST.startup_id ) AS business_angel " +
+                              "FROM Startup ST, Business_Incubator BI " +
+                              "WHERE BI.incubator_id = ST.incubator_id AND BI.name = '" + cbIncubator.Text + "';";
+            cmd = new SqlCommand(strQuery, con);
+            da = new SqlDataAdapter(strQuery, con);
+            da.Fill(dt);
+            dataGridView2.DataSource = dt;
+            con.Close();
+        }
+
+        private void btAngel_Click(object sender, EventArgs e)
+        {
+            label2.Show();
+            cbIncubator.Show();
+            dataGridView2.Show();
+        }
+
+        private void btInvManager_Click(object sender, EventArgs e)
+        {
+            label2.Show();
+            cbIncubator.Show();
+            dataGridView2.Show();
+        }
+
+        private void viewToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            tabControl1.Show();
+            cbStartupName.Show();
+            label1.Show();
+        }
+    }
+}
