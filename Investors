@@ -1,0 +1,43 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Windows.Forms;
+
+namespace ComAim___Venture_Market
+{
+    public partial class Investors : Form
+    {
+        public Investors()
+        {
+            InitializeComponent();
+        }
+
+        private void business_AngelBindingNavigatorSaveItem_Click(object sender, EventArgs e)
+        {
+            this.Validate();
+            this.business_AngelBindingSource.EndEdit();
+            this.tableAdapterManager.UpdateAll(this.comAimDataSet);
+
+        }
+
+        private void Investors_Load(object sender, EventArgs e)
+        {
+            // TODO: данная строка кода позволяет загрузить данные в таблицу "comAimDataSet.Investment_Company". При необходимости она может быть перемещена или удалена.
+            this.investment_CompanyTableAdapter.Fill(this.comAimDataSet.Investment_Company);
+            // TODO: данная строка кода позволяет загрузить данные в таблицу "comAimDataSet.Business_Angel". При необходимости она может быть перемещена или удалена.
+            this.business_AngelTableAdapter.Fill(this.comAimDataSet.Business_Angel);
+            tabControl1.Hide();
+
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            tabControl1.Show();
+            button1.Hide();
+        }
+    }
+}
